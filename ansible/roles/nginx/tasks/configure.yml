@@ -1,0 +1,12 @@
+---
+- name: Copy Nginx configuration file
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+  notify: Reload Nginx
+
+- name: Copy Nginx default site configuration
+  template:
+    src: default.conf.j2
+    dest: /etc/nginx/conf.d/default.conf
+  notify: Reload Nginx

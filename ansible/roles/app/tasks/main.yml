@@ -1,0 +1,52 @@
+- name: Install Node.js and npm
+  yum:
+    name:
+      - nodejs
+      - npm
+    state: present
+
+- name: Update PATH variable
+  shell: echo 'export PATH=$PATH:/bin/npm' >> ~/.bashrc
+  args:
+    creates: ~/.bashrc
+
+- name: Set ownership and permissions for the application directory
+  file:
+    path: /var/www/html
+    owner: nginx
+    group: nginx
+    state: directory
+    recurse: yes
+    mode: 0755
+
+- name: Copy build to server
+  tags: app, build, deploy
+  copy:
+    src: ../../../../app/
+    dest: /var/www/html
+    owner: nginx
+    group: nginx
+    mode: 0644
+
+- name: Install application dependencies
+  npm:
+    path: /var/www/html
+
+- name: Create service file
+  tags: app, build, deploy
+  template:
+    src: service_template.j2
+    dest: /etc/systemd/system/nodejs.service
+  register: service_conf
+
+- name: Reload systemd daemon
+  tags: app, build, deploy, systemd
+  systemd:
+    daemon_reload: yes
+  when: service_conf.changed
+
+- name: Install dependencies from lockfile
+  tags: app, build, deploy
+  shell: npm ci
+  args:
+    chdir: /var/www/html/

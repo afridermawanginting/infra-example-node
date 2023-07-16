@@ -1,0 +1,14 @@
+---
+# handlers file for roles/postgresql
+- name: Initialize PostgreSQL database
+  systemd:
+    name: postgresql-12.service
+    state: started
+    enabled: yes
+    environment:
+      PGSETUP_INITDB_OPTIONS: "--encoding=UTF-8 --locale=en_US.UTF-8"
+
+- name: Reload PostgreSQL service
+  systemd:
+    name: postgresql-12.service
+    state: reloaded

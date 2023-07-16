@@ -1,0 +1,1 @@
+{"rsync":{"/vagrant":{"type":"rsync","guestpath":"/vagrant","hostpath":"/Users/afridermawanginting/Sites/infra-example-node","disabled":false,"__vagrantfile":true,"owner":"vagrant","group":"vagrant"}}}

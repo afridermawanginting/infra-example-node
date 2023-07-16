@@ -1,0 +1,9 @@
+---
+- name: bootstrap web server & db server
+  hosts: server
+  become: yes
+  roles:
+    # - ../../roles/nginx
+    - ../../roles/nodejs
+    - ../../roles/postgresql
+    - ../../roles/app

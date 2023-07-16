@@ -1,0 +1,86 @@
+---
+- name: Install EPEL repository
+  yum:
+    name: epel-release
+    state: present
+
+- name: Install setuptools
+  yum:
+    name: python-setuptools
+    state: present
+
+- name: Add PostgreSQL repository
+  yum:
+    name: https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+    state: present
+
+- name: Install PostgreSQL server and client packages
+  yum:
+    name:
+      - postgresql12-server
+      - postgresql12-contrib
+      - postgresql12
+    state: present
+
+- name: Remove /var/lib/pgsql/12/data
+  command: rm -rf /var/lib/pgsql/12/data
+  become_user: root
+
+- name: Initialize PostgreSQL database
+  command: /usr/pgsql-12/bin/postgresql-12-setup initdb
+  become_user: root
+
+- name: Start and enable PostgreSQL service
+  systemd:
+    name: postgresql-12
+    state: started
+    enabled: yes
+
+- name: Update postgresql.conf to allow remote connections
+  lineinfile:
+    path: "{{ postgresql_conf }}"
+    regexp: "^#?listen_addresses = 'localhost'"
+    line: "listen_addresses = '*'"
+    state: present
+
+- name: Update pg_hba.conf to allow remote connections
+  lineinfile:
+    path: "{{ pg_hba_conf }}"
+    regexp: "^host\t+all\t+all\t+127.0.0.1/32\t+md5"
+    line: "host    all             all             0.0.0.0/0            md5"
+    state: present
+
+- name: add pg_hba.conf to allow remote connections
+  lineinfile:
+    path: "{{ pg_hba_conf }}"
+    regexp: "^host\t+all\t+all\t+127.0.0.1/32\t+md5"
+    line: "host    all             all             127.0.0.1/32            md5"
+    state: present
+
+- name: Change PostgreSQL authentication method
+  lineinfile:
+    path: "{{ pg_hba_conf }}"
+    regexp: '^local\s+all\s+postgres\s+peer'
+    line: 'local   all             postgres                                md5'
+    state: present
+    backup: yes
+
+- name: Install psycopg2 Python library
+  yum:
+    name: python-psycopg2
+    state: present
+
+# - name: Set password for postgres user
+#   postgresql_user:
+#     db: postgres
+#     name: postgres
+#     password: "{{ postgres_password }}"
+#     login_password : "{{ postgres_password }}"
+#     encrypted: yes
+#     port : 5432
+
+- name: Restart PostgreSQL service
+  systemd:
+    name: postgresql-12.service
+    state: restarted
+    enabled: yes

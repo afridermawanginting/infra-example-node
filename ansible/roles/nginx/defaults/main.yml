@@ -1,0 +1,3 @@
+---
+nginx_config_file: nginx.conf.j2
+nginx_default_config_file: default.conf.j2
